@@ -45,7 +45,7 @@ jobs:
         run: python company_dashboard_tracker.py
       
       - name: Upload Excel file
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: company-dashboard
