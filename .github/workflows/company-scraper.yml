@@ -1,0 +1,53 @@
+name: Company Dashboard Scraper
+
+on:
+  schedule:
+    # Runs every day at 6 PM IST (12:30 PM UTC)
+    - cron: '30 12 * * *'
+  workflow_dispatch:  # Allows manual trigger
+
+jobs:
+  scrape-companies:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      
+      - name: Install Chrome and ChromeDriver
+        uses: browser-actions/setup-chrome@v1
+        with:
+          chrome-version: stable
+      
+      - name: Verify Chrome installation
+        run: |
+          google-chrome --version
+          which google-chrome
+      
+      - name: Install Python dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+      
+      - name: Run scraper
+        env:
+          SCREENER_USERNAME: ${{ secrets.SCREENER_USERNAME }}
+          SCREENER_PASSWORD: ${{ secrets.SCREENER_PASSWORD }}
+          GOOGLE_SHEET_ID: ${{ secrets.GOOGLE_SHEET_ID }}
+          GOOGLE_CREDENTIALS_BASE64: ${{ secrets.GOOGLE_CREDENTIALS_BASE64 }}
+          MY_STONKS_WATCHLIST_URL: ${{ secrets.MY_STONKS_WATCHLIST_URL }}
+          CORE_WATCHLIST_URL: ${{ secrets.CORE_WATCHLIST_URL }}
+        run: python company_dashboard_tracker.py
+      
+      - name: Upload Excel file
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: company-dashboard
+          path: '*.xlsx'
+          retention-days: 30
